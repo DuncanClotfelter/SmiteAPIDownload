@@ -4,9 +4,15 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 import lombok.SneakyThrows;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.bson.Document;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.security.auth.login.LoginException;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -22,7 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class Main {
+public class Main extends ListenerAdapter {
     private static String sessionID = null;
     private static final String devID = getCred("devID");
     private static final String authKey = getCred("authKey");
@@ -31,8 +37,11 @@ public class Main {
     private static final Charset UTF8 = StandardCharsets.UTF_8;
     private static final Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, LoginException {
+        JDA builder = JDABuilder.createDefault(getCred("token")).build();
+        builder.addEventListener(new Main());
+
+        /*MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://"+getCred("ip")+":27017"));
         MongoDatabase database = mongoClient.getDatabase("local");
 
         sessionID = createSession();
@@ -49,7 +58,14 @@ public class Main {
                 }
             }
             processResult(database, methodName, sendRequest(methodName, info));
-        }
+        }*/
+    }
+
+    @Override
+    public void onMessageReceived(MessageReceivedEvent e) {
+        System.out.println("Message received!");
+        if(e.getChannelType() != ChannelType.PRIVATE || e.getAuthor().isBot()) {return;}
+        e.getChannel().sendMessage("Smite is bad.").queue();
     }
 
     private static void processResult(MongoDatabase db, String methodName, InputStream is) throws IOException {
